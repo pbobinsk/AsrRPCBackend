@@ -2,7 +2,7 @@ import os
 import argparse
 import json
 
-def do_asr(args):
+def main(args):
     # Zmieniamy katalog na podany
     os.chdir(args.directory)
     print("Aktualny katalog:", os.getcwd())
@@ -36,8 +36,8 @@ if __name__ == '__main__':
 
     # Parsujemy argumenty
     args = parser.parse_args()
-
-    do_asr(args)
+    print(type(args))
+    main(args)
 
 
 
