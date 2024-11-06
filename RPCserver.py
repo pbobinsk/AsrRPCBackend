@@ -1,10 +1,13 @@
 import os, argparse, json
 from dotenv import load_dotenv
-import asr_module as asr
 from jsonrpcserver import Success, method, serve, Result, Error
 import logging
 
 load_dotenv()
+import sys
+sys.path.append(os.getenv('ASR_DIR'))
+from scripts import asr_module as asr
+
 WORKING_DIR = os.getenv('WORKING_DIR')
 logging.basicConfig(
     level=os.getenv('LOGLEVEL', 'INFO').upper()
@@ -18,9 +21,9 @@ def ping():
 
 @method
 def hello(name: str) -> Result:
-    if (name=='dupa'):
-        logging.error('Bład')
-        return Error(-1,'Bardzo brzydko')
+    if (name==''):
+        logging.error('Error')
+        return Error(-1,'Empty string')
     return Success({'ans':"Hello " + name})
 
 def test():
@@ -37,7 +40,7 @@ if __name__ == '__main__':
     #test()
     setattr(nameSpaceArgs,'audio_name','test.wav')
     print(nameSpaceArgs)
-    #asr.main(na)
+    asr.main(nameSpaceArgs)
     #print("Done")
     try:
         serve(port=int(PORT))

@@ -1,10 +1,11 @@
-# Instrukcja:
-wszystko zrobiłam na koncie Marcina, gdzie mam swój katalog karolina
+# Serwer RPC - jsonrpc
+- parametry - .env
+- moduły - requirements.txt
 
-skrypt jest w: /home/ml/Documents/karolina/INFOSTRATEG/scripts/asr_module.py
+## Metody
+- testowe: ping() i hello(str)
+- użytkowe:
+    - uploadFile(str)
+    - doAsr() -> wygenerowany json 
 
-środowisko uruchomieniowe: env_whisper_nemo_2 (. env_whisper_nemo_2/bin/activate) --> działa dla python3.10
-
-uruchamianie: python asr_module.py /home/ml/Documents/karolina/INFOSTRATEG/asr_module WR_S0001_Z05BO.wav
-
-czyli podajemy dwa argumenty: ścieżkę, do katalogu, gdzie mają zapisywać się wyniki i nazwę pliku audio dla którego skrypt ma działać  i to tyle
+Na razie plik jest po prostu kopiowany, w przyszłości będzie przekazywany przez jakiś strumień
