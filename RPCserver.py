@@ -6,7 +6,7 @@ import logging
 load_dotenv()
 import sys
 sys.path.append(os.getenv('ASR_DIR'))
-from scripts import asr_module as asr
+from scripts import asr_module as asr # type: ignore
 
 WORKING_DIR = os.getenv('WORKING_DIR')
 logging.basicConfig(
