@@ -34,6 +34,7 @@ def uploadFile(path: str) -> Result:
     except Exception as e:
         logging.error('Error during coping file '+str(e))
         return Error(-1,str(e))
+    logging.debug('File copied '+path)
     return Success({'ans':"File copied"})
 
 @method
@@ -50,6 +51,7 @@ def doASR(file: str, file_doctor) -> Result:
     except Exception as e:
         logging.error('Error during ASR '+str(e))
         return Error(-1,str(e))
+    logging.debug('ASR done for '+file+' and '+file_doctor)
     return Success(data)
 
 def test():
@@ -61,7 +63,7 @@ def test():
     f = open(json_file_path, encoding='utf-8')
     data = json.load(f)
     print(data)
-    
+    print("Test done")
 
 if __name__ == '__main__':
     """
@@ -71,5 +73,4 @@ if __name__ == '__main__':
         serve(port=int(PORT))
     except KeyboardInterrupt:
         print('Server terminated')
-    
-    
+
