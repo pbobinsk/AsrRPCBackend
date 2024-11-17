@@ -64,11 +64,12 @@ def test():
     
 
 if __name__ == '__main__':
+    """
     test()
     """
     try:
         serve(port=int(PORT))
     except KeyboardInterrupt:
         print('Server terminated')
-    """
+    
     
