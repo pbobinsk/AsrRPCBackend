@@ -8,4 +8,4 @@
     - uploadFile(str)
     - doAsr() -> wygenerowany json 
 
-Na razie plik jest po prostu kopiowany, w przyszłości będzie przekazywany przez jakiś strumień
+Na razie plik jest po prostu kopiowany, w przyszłości będzie przekazywany przez jakiś strumień, albo najpewniej przez MongoDB.
