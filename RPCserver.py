@@ -17,7 +17,7 @@ logging.basicConfig(
 PORT = os.getenv('PORT',5000)
 nameSpaceArgs= argparse.Namespace(**{"directory":WORKING_DIR})
 
-PRODUCTION = os.getenv('PRODUCTION',1)
+PRODUCTION = int(os.getenv('PRODUCTION',1))
 OPENAI_DIR = os.getenv('OPENAI_DIR')
 
 @method
@@ -53,6 +53,9 @@ def doASR(file: str, file_doctor) -> Result:
         if PRODUCTION == 0:
             json_gen_path = os.path.join(WORKING_DIR, "WR_S0001_Z05BO.wav.json")
             csv_gen_path = os.path.join(WORKING_DIR, "WR_S0001_Z05BO.csv")
+            logging.debug(json_file_path)
+            logging.debug(json_gen_path)
+            
             shutil.copy(json_gen_path,json_file_path)
             shutil.copy(csv_gen_path,csv_file_path)
             logging.info(json_file_path)
