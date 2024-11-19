@@ -2,3 +2,5 @@ WORKING_DIR = C:\Users\DELL\Infostrateg\asr_module
 LOGLEVEL = DEBUG
 PORT=5666
 ASR_DIR = ..
+PRODUCTION = 0
+OPENAI_DIR = C:\Users\DELL\Infostrateg\openai_module
