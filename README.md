@@ -8,5 +8,6 @@
 - użytkowe:
     - uploadFile(str) - przekazanie plików dźwiękowych do systemu ASR
     - doAsr() - uruchomienie transkrypcji, metoda zwraca plik json z transkrypcją
+        - metoda także kopiuje wygenerowany plik z transkrupcją do modułu NLP  
 
 Na razie plik jest po prostu kopiowany, w przyszłości będzie przekazywany przez jakiś strumień, albo najpewniej przez MongoDB.
