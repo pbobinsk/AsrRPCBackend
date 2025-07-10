@@ -6,9 +6,9 @@ import shutil
 from pathlib import Path
 
 load_dotenv()
-import sys
-sys.path.append(os.getenv('ASR_DIR'))
-from scripts import asr_module_speaker_recognition as asr # type: ignore
+# import sys
+# sys.path.append(os.getenv('ASR_DIR'))
+from asr_module import asr_module_speaker_recognition as asr # type: ignore
 
 WORKING_DIR = os.getenv('WORKING_DIR')
 logging.basicConfig(
@@ -20,8 +20,18 @@ nameSpaceArgs= argparse.Namespace(**{"directory":WORKING_DIR})
 PRODUCTION = int(os.getenv('PRODUCTION',1))
 OPENAI_DIR = os.getenv('OPENAI_DIR')
 
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+WORKING_DIR = os.path.join(PROJECT_ROOT, WORKING_DIR)
+OPENAI_DIR = os.path.join(PROJECT_ROOT, OPENAI_DIR)
+
+print('***')
+print(PROJECT_ROOT)
+print(WORKING_DIR)
+print('***')
+
 @method
 def ping():
+    print(WORKING_DIR)
     return Success("pong")
 
 @method
@@ -38,28 +48,36 @@ def uploadFile(path: str) -> Result:
     except Exception as e:
         logging.error('Error during coping file '+str(e))
         return Error(-1,str(e))
-    logging.debug('File copied '+path)
+    logging.debug('File copied '+path+" -> "+WORKING_DIR)
     return Success({'ans':"File copied"})
 
 @method
 def doASR(file: str, file_doctor) -> Result:
+    print('doASR')
     try:
         setattr(nameSpaceArgs,'audio_name',file)
         setattr(nameSpaceArgs,'audio_name_doctor',file_doctor)
+        print('-1-')
         asr.main(nameSpaceArgs)
+        print('-2-')
         json_file_path = os.path.join(WORKING_DIR, f"{nameSpaceArgs.audio_name}.json")
         csv_file_path = os.path.join(WORKING_DIR, f"{Path(nameSpaceArgs.audio_name).stem}.csv")
-        # Symulacja ASR, tylko do testów lokalnych, normalnie json i csv będą wygenerowane jak powyżej
+         # Symulacja ASR, tylko do testów lokalnych, normalnie json i csv będą wygenerowane jak powyżej
         if PRODUCTION == 0:
+            print('-3-')
             json_gen_path = os.path.join(WORKING_DIR, "WR_S0001_Z05BO.wav.json")
             csv_gen_path = os.path.join(WORKING_DIR, "WR_S0001_Z05BO.csv")
+            print('---')
             logging.debug(json_file_path)
             logging.debug(json_gen_path)
-            
+            print('---')
             shutil.copy(json_gen_path,json_file_path)
+            print('---')
             shutil.copy(csv_gen_path,csv_file_path)
             logging.info(json_file_path)
             logging.info(csv_file_path)
+            print('---')
+            
         #koniec syulacji działania ASR
         f = open(json_file_path, encoding='utf-8')
         data = json.load(f)

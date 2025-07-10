@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  asr-service:
+    # Buduje obraz na podstawie Dockerfile w bieżącym katalogu
+    build: .
+    
+    # Nazwa kontenera, żeby łatwiej go identyfikować
+    container_name: asr_rpc_service
+    
+    # Przekierowuje port 5666 z Twojego komputera na port 5666 w kontenerze
+    ports:
+      - "5666:5666"
+      
+    # Wczytuje wszystkie zmienne z pliku .env do kontenera
+    env_file:
+      - .env
+      
+    # (Opcjonalnie, ale bardzo przydatne!)
+    # Montuje wolumeny, dzięki czemu zmiany w kodzie na Twoim komputerze
+    # są od razu widoczne w kontenerze, bez potrzeby przebudowywania obrazu.
+    # Podobnie z plikami audio - dodajesz nowy plik i jest on od razu dostępny.
+    volumes:
+      - ./rpc_service:/app/rpc_service
+      - ./asr_module:/app/asr_module
+      - ./openai_module:/app/openai_module
+      - ./audio_files:/app/audio_files
