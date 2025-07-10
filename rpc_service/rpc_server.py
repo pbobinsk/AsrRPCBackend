@@ -64,9 +64,8 @@ def doASR(file: str, file_doctor) -> Result:
         if PRODUCTION == 0:
             json_gen_path = os.path.join(WORKING_DIR, "WR_S0001_Z05BO.wav.json")
             csv_gen_path = os.path.join(WORKING_DIR, "WR_S0001_Z05BO.csv")
-            logging.debug('json_file_path:'+json_file_path)
-            logging.debug('json_gen_path'+json_gen_path)
-            logging.debug('csv_gen_path'+csv_gen_path)
+            logging.debug('json_gen_path -> json_file_path: '+json_gen_path+' -> '+json_file_path)
+            logging.debug('csv_gen_path -> csv_file_path: '+csv_gen_path+' -> '+csv_file_path)
             shutil.copy(json_gen_path,json_file_path)
             shutil.copy(csv_gen_path,csv_file_path)
             
@@ -74,7 +73,11 @@ def doASR(file: str, file_doctor) -> Result:
         f = open(json_file_path, encoding='utf-8')
         data = json.load(f)
         csv_openai_path = os.path.join(OPENAI_DIR, Path(csv_file_path).name)
+        json_openai_path = os.path.join(OPENAI_DIR, Path(json_file_path).name)
+        logging.debug('json_file_path -> json_openai_path: '+json_file_path+' -> '+json_openai_path)
+        logging.debug('csv_file_path -> csv_openai_path: '+csv_file_path+' -> '+csv_openai_path)
         shutil.copy(csv_file_path,csv_openai_path)
+        shutil.copy(json_file_path,json_openai_path)
     except Exception as e:
         logging.error('Error during ASR '+str(e))
         return Error(-1,str(e))

@@ -25,3 +25,5 @@ services:
       - ./asr_module:/app/asr_module
       - ./openai_module:/app/openai_module
       - ./audio_files:/app/audio_files
+      - ./uploads:/app/uploads
+      
