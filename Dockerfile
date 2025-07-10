@@ -1,5 +1,5 @@
 # 1. Wybierz oficjalny obraz Pythona jako bazę
-FROM python:3.10-slim
+FROM python:3.14-slim
 
 # 2. Ustaw zmienną środowiskową, aby logi Pythona pojawiały się od razu
 ENV PYTHONUNBUFFERED=1
