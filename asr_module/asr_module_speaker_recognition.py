@@ -8,24 +8,17 @@ def main(args):
     # os.chdir(args.directory)
     print('asr_module_mock '+"Aktualny katalog:", os.getcwd())
 
-    last_part = os.path.basename(args.directory)
-
     # Wyświetlamy nazwy plików
     print('asr_module_mock '+"Nazwa pliku audio ", args.audio_name)
     print('asr_module_mock '+"Nazwa pliku audio lekarz", args.audio_name_doctor)
     print('asr_module_mock '+"Ścieka do zapisu wyników działania skryptu: ", args.directory)
 
-    audio_id = args.audio_name.rsplit('.', 1)[0]
-    audio_doctor_id = args.audio_name_doctor.rsplit('.', 1)[0]
 
     ROOT = os.getcwd()
     print('asr_module_mock '+'ROOT', ROOT)
     data_dir = os.path.join(ROOT,'auxiliary/data')
     print(data_dir)
     os.makedirs(data_dir, exist_ok=True)
-    audio_path = os.path.join(ROOT, args.audio_name)
-    audio_doctor_path = os.path.join(ROOT, args.audio_name_doctor)
-
     json_file_path = os.path.join(ROOT, f"{args.audio_name}.json")
 
     print('asr_module_mock '+f"JSON saved to: {json_file_path}")

@@ -8,7 +8,7 @@ from pathlib import Path
 load_dotenv()
 # import sys
 # sys.path.append(os.getenv('ASR_DIR'))
-from asr_module import asr_module_speaker_recognition as asr # type: ignore
+from asr_module import asr_module_mock as asr # type: ignore
 
 WORKING_DIR = os.getenv('WORKING_DIR')
 logging.basicConfig(
@@ -60,14 +60,14 @@ def doASR(file: str, file_doctor) -> Result:
         asr.main(nameSpaceArgs)
         json_file_path = os.path.join(WORKING_DIR, f"{nameSpaceArgs.audio_name}.json")
         csv_file_path = os.path.join(WORKING_DIR, f"{Path(nameSpaceArgs.audio_name).stem}.csv")
-         # Symulacja ASR, tylko do testów lokalnych, normalnie json i csv będą wygenerowane jak powyżej
-        if PRODUCTION == 0:
-            json_gen_path = os.path.join(WORKING_DIR, "WR_S0001_Z05BO.wav.json")
-            csv_gen_path = os.path.join(WORKING_DIR, "WR_S0001_Z05BO.csv")
-            logging.debug('json_gen_path -> json_file_path: '+json_gen_path+' -> '+json_file_path)
-            logging.debug('csv_gen_path -> csv_file_path: '+csv_gen_path+' -> '+csv_file_path)
-            shutil.copy(json_gen_path,json_file_path)
-            shutil.copy(csv_gen_path,csv_file_path)
+        #  # Symulacja ASR, tylko do testów lokalnych, normalnie json i csv będą wygenerowane jak powyżej
+        # if PRODUCTION == 0:
+        #     json_gen_path = os.path.join(WORKING_DIR, "WR_S0001_Z05BO.wav.json")
+        #     csv_gen_path = os.path.join(WORKING_DIR, "WR_S0001_Z05BO.csv")
+        #     logging.debug('json_gen_path -> json_file_path: '+json_gen_path+' -> '+json_file_path)
+        #     logging.debug('csv_gen_path -> csv_file_path: '+csv_gen_path+' -> '+csv_file_path)
+        #     shutil.copy(json_gen_path,json_file_path)
+        #     shutil.copy(csv_gen_path,csv_file_path)
             
         #koniec syulacji działania ASR
         f = open(json_file_path, encoding='utf-8')
