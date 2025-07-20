@@ -1,0 +1,24 @@
+# Ignoruj wirtualne środowisko
+.venv/
+venv/
+
+# Ignoruj pliki cache Pythona
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignoruj pliki konfiguracyjne IDE
+.vscode/
+.idea/
+
+# Ignoruj pliki Gita
+.git/
+.gitignore
+
+# Ignoruj pliki cache buildów
+build/
+dist/
+*.egg-info
+
+# Plik bazy danych SQLite, jeśli go jeszcze masz
+app.db

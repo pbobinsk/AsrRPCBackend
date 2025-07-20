@@ -6,28 +6,33 @@ import shutil
 from pathlib import Path
 
 load_dotenv()
-# import sys
-# sys.path.append(os.getenv('ASR_DIR'))
 from asr_module import asr_module_mock as asr # type: ignore
 
-WORKING_DIR = os.getenv('WORKING_DIR')
+log_level = os.getenv('LOGLEVEL', 'INFO').upper()
 logging.basicConfig(
-    level=os.getenv('LOGLEVEL', 'INFO').upper()
+    level=log_level,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
 )
+log = logging.getLogger('rpc_service.ASR')
+log.setLevel(log_level)
+log.info("Konfiguracja logowania zakończona.")
+log.info(f"Poziom logowania: {log_level}")
+
+log.info('Init ...')
+WORKING_DIR = os.getenv('WORKING_DIR')
 PORT = os.getenv('PORT',5000)
 nameSpaceArgs= argparse.Namespace(**{"directory":WORKING_DIR})
-
 PRODUCTION = int(os.getenv('PRODUCTION',1))
 OPENAI_DIR = os.getenv('OPENAI_DIR')
-
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 WORKING_DIR = os.path.join(PROJECT_ROOT, WORKING_DIR)
 OPENAI_DIR = os.path.join(PROJECT_ROOT, OPENAI_DIR)
-
-logging.debug('Init')
-logging.debug(PROJECT_ROOT)
-logging.debug(WORKING_DIR)
-logging.debug('Init end')
+log.debug(PRODUCTION)
+log.debug(PROJECT_ROOT)
+log.debug(WORKING_DIR)
+log.debug(OPENAI_DIR)
+log.info('Init end')
 
 @method
 def ping():
@@ -37,7 +42,7 @@ def ping():
 @method
 def hello(name: str) -> Result:
     if (name==''):
-        logging.error('Error')
+        log.error('Error')
         return Error(-1,'Empty string')
     return Success({'ans':"Hello " + name})
 
@@ -46,9 +51,9 @@ def uploadFile(path: str) -> Result:
     try:
         shutil.copy(path, WORKING_DIR)
     except Exception as e:
-        logging.error('Error during coping file '+str(e))
+        log.error('Error during coping file '+str(e))
         return Error(-1,str(e))
-    logging.debug('File copied '+path+" -> "+WORKING_DIR)
+    log.debug('File copied '+path+" -> "+WORKING_DIR)
     return Success({'ans':"File copied"})
 
 @method
@@ -64,8 +69,8 @@ def doASR(file: str, file_doctor) -> Result:
         # if PRODUCTION == 0:
         #     json_gen_path = os.path.join(WORKING_DIR, "WR_S0001_Z05BO.wav.json")
         #     csv_gen_path = os.path.join(WORKING_DIR, "WR_S0001_Z05BO.csv")
-        #     logging.debug('json_gen_path -> json_file_path: '+json_gen_path+' -> '+json_file_path)
-        #     logging.debug('csv_gen_path -> csv_file_path: '+csv_gen_path+' -> '+csv_file_path)
+        #     log.debug('json_gen_path -> json_file_path: '+json_gen_path+' -> '+json_file_path)
+        #     log.debug('csv_gen_path -> csv_file_path: '+csv_gen_path+' -> '+csv_file_path)
         #     shutil.copy(json_gen_path,json_file_path)
         #     shutil.copy(csv_gen_path,csv_file_path)
             
@@ -74,14 +79,14 @@ def doASR(file: str, file_doctor) -> Result:
         data = json.load(f)
         csv_openai_path = os.path.join(OPENAI_DIR, Path(csv_file_path).name)
         json_openai_path = os.path.join(OPENAI_DIR, Path(json_file_path).name)
-        logging.debug('json_file_path -> json_openai_path: '+json_file_path+' -> '+json_openai_path)
-        logging.debug('csv_file_path -> csv_openai_path: '+csv_file_path+' -> '+csv_openai_path)
-        shutil.copy(csv_file_path,csv_openai_path)
-        shutil.copy(json_file_path,json_openai_path)
+        log.debug('json_file_path -> json_openai_path: '+json_file_path+' -> '+json_openai_path)
+        log.debug('csv_file_path -> csv_openai_path: '+csv_file_path+' -> '+csv_openai_path)
+        # shutil.copy(csv_file_path,csv_openai_path)
+        # shutil.copy(json_file_path,json_openai_path)
     except Exception as e:
-        logging.error('Error during ASR '+str(e))
+        log.error('Error during ASR '+str(e))
         return Error(-1,str(e))
-    logging.debug('ASR done for '+file+' and '+file_doctor)
+    log.debug('ASR done for '+file+' and '+file_doctor)
     return Success(data)
 
 def test():
@@ -99,6 +104,7 @@ if __name__ == '__main__':
     """
     test()
     """
+    log.info('Starting server')
     try:
         serve(port=int(PORT))
     except KeyboardInterrupt:

@@ -7,7 +7,7 @@ import shutil
 from pathlib import Path
 
 # Dobra praktyka: skonfiguruj logowanie na początku
-logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(name)s:%(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(levelname)s:%(name)s:%(message)s')
 log = logging.getLogger('asr_module_mock')
 
 class MockAsrError(Exception):
