@@ -22,3 +22,5 @@ dist/
 
 # Plik bazy danych SQLite, jeśli go jeszcze masz
 app.db
+
+*.wav
