@@ -6,7 +6,8 @@ import shutil
 from pathlib import Path
 
 load_dotenv()
-from asr_module import asr_module_mock as asr # type: ignore
+# from asr_module import asr_module_mock as asr # type: ignore
+import asr_module as asr
 
 log_level = os.getenv('LOGLEVEL', 'INFO').upper()
 logging.basicConfig(
@@ -33,6 +34,10 @@ log.debug(PROJECT_ROOT)
 log.debug(WORKING_DIR)
 log.debug(OPENAI_DIR)
 log.info('Init end')
+if asr.is_real_asr_in_use():
+    log.info("Przetwarzanie wykonane przez prawdziwy silnik ASR.")
+else:
+    log.info("Przetwarzanie wykonane przez atrapę.")
 
 @method
 def ping():
