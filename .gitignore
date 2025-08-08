@@ -129,6 +129,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.venv_whisper
 
 # Spyder project settings
 .spyderproject
@@ -162,3 +163,19 @@ cython_debug/
 #.idea/
 
 *.wav
+
+# Krok 1: Zignoruj WSZYSTKIE pliki .csv w całym projekcie.
+*.csv
+
+# Krok 2: Zignoruj WSZYSTKIE pliki .json w całym projekcie.
+*.json
+
+# Krok 3: Stwórz wyjątek dla konkretnego pliku 1.csv.
+# Ten plik NIE będzie ignorowany.
+!WR_S0001_Z05BO.csv
+
+# Krok 4: Stwórz wyjątek dla konkretnego pliku 2.json.
+# Ten plik NIE będzie ignorowany.
+!WR_S0001_Z05BO.wav.json
+
+audio_files/

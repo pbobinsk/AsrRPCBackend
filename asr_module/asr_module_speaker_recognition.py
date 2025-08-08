@@ -226,14 +226,36 @@ def main(args):
 
 if __name__ == "__main__":
     # Tworzymy parser argumentów
+    print('1')
     parser = argparse.ArgumentParser(description="Skrypt do przetwarzania pliku audio")
-    parser.add_argument("directory", type=str, help="Ścieżka do miejsca, w którym ma się uruchamiać skrypt")
-    parser.add_argument("audio_name", type=str, help="Nazwa pliku audio - nagranie rozmowy lekarz-pacjęt")
-    parser.add_argument("audio_name_doctor", type=str, help="Nazwa pliku audio - nagranie lekarza")
-
+    parser.add_argument("audio_files", type=str, help="Ścieżka do miejsca, w którym ma się uruchamiać skrypt")
+    parser.add_argument("test.wav", type=str, help="Nazwa pliku audio - nagranie rozmowy lekarz-pacjęt")
+    parser.add_argument("user_10.wav", type=str, help="Nazwa pliku audio - nagranie lekarza")
+    
+    print('2')
+    
     # Parsujemy argumenty
-    args = parser.parse_args()
-    main(args)
+    # args = parser.parse_args()
+
+    print('3')
+    # main(args)
+# Makieta obiektu 'args'
+    class MockArgs:
+        def __init__(self, directory, audio_name, audio_name_doctor):
+            self.directory = directory
+            self.audio_name = audio_name
+            self.audio_name_doctor = audio_name_doctor
+        
+        def __str__(self):
+            return f"dir={self.directory}, audio={self.audio_name}, doctor_audio={self.audio_name_doctor}"
+
+    mock_args = MockArgs(
+        directory='audio_files', # Katalog, w którym są pliki
+        audio_name='test.wav',
+        audio_name_doctor='user_10.wav'
+    )
+    main(mock_args)
+
 
 
 
