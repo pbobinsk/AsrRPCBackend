@@ -70,24 +70,12 @@ def doASR(file: str, file_doctor) -> Result:
         asr.main(nameSpaceArgs)
         json_file_path = os.path.join(WORKING_DIR, f"{nameSpaceArgs.audio_name}.json")
         csv_file_path = os.path.join(WORKING_DIR, f"{Path(nameSpaceArgs.audio_name).stem}.csv")
-        #  # Symulacja ASR, tylko do testów lokalnych, normalnie json i csv będą wygenerowane jak powyżej
-        # if PRODUCTION == 0:
-        #     json_gen_path = os.path.join(WORKING_DIR, "WR_S0001_Z05BO.wav.json")
-        #     csv_gen_path = os.path.join(WORKING_DIR, "WR_S0001_Z05BO.csv")
-        #     log.debug('json_gen_path -> json_file_path: '+json_gen_path+' -> '+json_file_path)
-        #     log.debug('csv_gen_path -> csv_file_path: '+csv_gen_path+' -> '+csv_file_path)
-        #     shutil.copy(json_gen_path,json_file_path)
-        #     shutil.copy(csv_gen_path,csv_file_path)
-            
-        #koniec syulacji działania ASR
         f = open(json_file_path, encoding='utf-8')
         data = json.load(f)
         csv_openai_path = os.path.join(OPENAI_DIR, Path(csv_file_path).name)
         json_openai_path = os.path.join(OPENAI_DIR, Path(json_file_path).name)
         log.debug('json_file_path -> json_openai_path: '+json_file_path+' -> '+json_openai_path)
         log.debug('csv_file_path -> csv_openai_path: '+csv_file_path+' -> '+csv_openai_path)
-        # shutil.copy(csv_file_path,csv_openai_path)
-        # shutil.copy(json_file_path,json_openai_path)
     except Exception as e:
         log.error('Error during ASR '+str(e))
         return Error(-1,str(e))
