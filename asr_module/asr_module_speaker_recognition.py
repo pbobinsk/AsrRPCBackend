@@ -10,6 +10,10 @@ from nemo.collections.asr.models import ClusteringDiarizer
 import nemo.collections.asr as nemo_asr
 from nemo.collections.asr.models.msdd_models import NeuralDiarizer
 import whisper
+import torch
+
+# WYBÓR KARTY GPU
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 def main(args):
     # Zmieniamy katalog na podany
@@ -74,7 +78,7 @@ def main(args):
     config.diarizer.speaker_embeddings.parameters.shift_length_in_sec = [0.75,0.625,0.5,0.375,0.1]
     config.diarizer.speaker_embeddings.parameters.multiscale_weights= [1,1,1,1,1]
     config.diarizer.oracle_vad = False # ----> ORACLE VAD
-    config.diarizer.clustering.parameters.oracle_num_speakers = False
+    config.diarizer.clustering.parameters.oracle_num_speakers = True # WCZEŚNIEJ BYŁO FALSE 
                 
     oracle_vad_clusdiar_model = ClusteringDiarizer(cfg=config)
     # And lets diarize
@@ -103,6 +107,14 @@ def main(args):
 
     df = df.drop(['orthography', 'speaker_type', 'confidence', 'signal_quality'], axis=1)
     df['stop'] = df['start'].astype(float) + df['duration'].astype(float)
+
+    # --- TU JEST NOWY FRAGMENT ---
+    # Zakładamy, że chcemy tylko 2 najdłuższych mówców
+    df['duration'] = df['duration'].astype(float)
+    speaker_durations = df.groupby('turn')['duration'].sum().sort_values(ascending=False)
+    top_speakers = speaker_durations.head(2).index.tolist()
+    df = df[df['turn'].isin(top_speakers)]
+    # ----------------------------------
 
     # Konwersja kolumny 'duration' na float
     df['duration'] = df['duration'].astype(float)
@@ -174,16 +186,20 @@ def main(args):
     # Wczytaj plik CSV do DataFrame
     df_whisper = pd.read_csv(csv_file_path, sep=';', encoding='utf-8')  # Użyj separatora i kodowania zgodnie z tym, co ustawiłeś podczas zapisu
 
+    # --- TU JEST NOWY FRAGMENT ---
+    # Ustaw domyślne urządzenie
+    device = "cuda:0" if torch.cuda.is_available() else "cpu" 
+
     # Załaduj model Whisper
-    model = whisper.load_model("large-v3")
+    model = whisper.load_model("large-v3", device=device)
 
     def whisper_transcribe(file_path):
         # Ustaw język na ten, który chcesz transkrybować
-        transcription = model.transcribe(file_path, language='pl')
+        transcription = model.transcribe(file_path, language='pl', fp16=torch.cuda.is_available())
         return transcription["text"]
 
     # Użyj funkcji whisper_transcribe do transkrypcji
-    df_whisper['transcription'] = df_whisper['wav_file_path'].apply(lambda path: whisper_transcribe(path))
+    df_whisper['transcription'] = df_whisper['wav_file_path'].apply(lambda path: whisper_transcribe(path))  
 
     # Mapowanie wartości
     df_whisper['speaker_tag'] = df_whisper['turn'].map({'speaker_0': 0, 'speaker_1': 1})

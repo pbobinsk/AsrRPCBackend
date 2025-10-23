@@ -19,7 +19,7 @@ def process_directory(directory_path: str, doctor_path: str):
     # Przechodzimy przez wszystkie pliki w podanym katalogu
     for filename in os.listdir(directory_path):
         # Sprawdzamy, czy nazwa pliku kończy się na pożądane rozszerzenie
-        if filename.endswith(".wav"):
+        if filename.endswith("wizyta.wav"):
             input_wav_path = os.path.join(directory_path, filename)
             doctor_filename = filename.replace('_wizyta.wav', '_lekarz.wav')
             input_doctor_path = os.path.join(doctor_path, doctor_filename)
@@ -34,7 +34,7 @@ def process_directory(directory_path: str, doctor_path: str):
                 # data = doNLPreal(input_json_path,'gpt-3.5-turbo')
                 # with open(output_pdf_path, "w", encoding='utf-8') as f:
 
-                doASR4batch(directory_path, input_wav_path, input_doctor_path)
+                doASR4batch(directory_path, filename, doctor_filename)
 
                 converted_count += 1
 
