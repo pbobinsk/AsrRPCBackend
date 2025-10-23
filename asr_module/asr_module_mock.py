@@ -66,7 +66,7 @@ def main(args):
 
     # --- SYMULACJA OPÓŹNIENIA ---
     # Losujemy czas przetwarzania, np. od 5 do 20 sekund.
-    processing_time = random.uniform(3.0, 7.0)
+    processing_time = random.uniform(1.0, 2.0)
     log.info(f"Symuluję przetwarzanie ASR, które potrwa {processing_time:.2f} sekund...")
     
     # Używamy pętli z krótkimi przerwami, aby pokazać postęp
@@ -81,7 +81,7 @@ def main(args):
 
     # --- SYMULACJA LOSOWEGO BŁĘDU ---
     # Ustawiamy prawdopodobieństwo wystąpienia błędu, np. 25% (0.25)
-    error_probability = 0.15
+    error_probability = 0.015
     if random.random() < error_probability:
         log.warning("Symuluję losowy błąd podczas przetwarzania ASR!")
         # Rzucamy nasz niestandardowy wyjątek

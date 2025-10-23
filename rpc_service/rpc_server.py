@@ -82,6 +82,23 @@ def doASR(file: str, file_doctor) -> Result:
     log.debug('ASR done for '+file+' and '+file_doctor)
     return Success(data)
 
+def doASR4batch(directory:str, file: str, file_doctor) -> Result:
+    print('doASR for batch processing')
+    try:
+        setattr(nameSpaceArgs,'directory',directory)
+        setattr(nameSpaceArgs,'audio_name',file)
+        setattr(nameSpaceArgs,'audio_name_doctor',file_doctor)
+        asr.main(nameSpaceArgs)
+        json_file_path = os.path.join(directory, f"{nameSpaceArgs.audio_name}.json")
+        csv_file_path = os.path.join(directory, f"{Path(nameSpaceArgs.audio_name).stem}.csv")
+        f = open(json_file_path, encoding='utf-8')
+    except Exception as e:
+        log.error('Error during ASR '+str(e))
+        return Error(-1,str(e))
+    log.debug('ASR batch done for '+file+' and '+file_doctor)
+    return Success()
+
+
 def test():
     print(os.listdir(WORKING_DIR))
     setattr(nameSpaceArgs,'audio_name','WR_S0001_Z05BO.wav')
