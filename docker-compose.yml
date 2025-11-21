@@ -3,27 +3,60 @@ version: '3.8'
 services:
   asr-service:
     # Buduje obraz na podstawie Dockerfile w bieżącym katalogu
-    build: .
-    
+#    build: .
+    image: ghcr.io/pbobinsk/asr-rpc-service-docker:1.0 
     # Nazwa kontenera, żeby łatwiej go identyfikować
     container_name: asr_rpc_service
     
-    # Przekierowuje port 5666 z Twojego komputera na port 5666 w kontenerze
+    # NVIDIA runtime dla GPU
+    runtime: nvidia
+    
+    # Przekierowuje porty (dostosowałem do 5669 z Dockerfile)
     ports:
-      - "5666:5666"
+      - "5669:5669"
       
     # Wczytuje wszystkie zmienne z pliku .env do kontenera
     env_file:
       - .env
+    
+    # Zmienne środowiskowe dla GPU
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - CUDA_VISIBLE_DEVICES=0,1,2
+      - CUDA_LAUNCH_BLOCKING=1
+
       
-    # (Opcjonalnie, ale bardzo przydatne!)
     # Montuje wolumeny, dzięki czemu zmiany w kodzie na Twoim komputerze
     # są od razu widoczne w kontenerze, bez potrzeby przebudowywania obrazu.
-    # Podobnie z plikami audio - dodajesz nowy plik i jest on od razu dostępny.
     volumes:
       - ./rpc_service:/app/rpc_service
       - ./asr_module:/app/asr_module
-      - ../../frontend/InfostrategFlaskApp/shared-data:/app/openai_module
-      - ../../frontend/InfostrategFlaskApp/shared-data:/app/audio_files
-      - ../../frontend/InfostrategFlaskApp/uploads:/app/uploads
       
+
+      - ../../Infostrateg_ISPMdL/WebApp_tests/shared-data:/app/openai_module
+      - ../../Infostrateg_ISPMdL/WebApp_tests/shared-data:/app/audio_files
+      - ../../Infostrateg_ISPMdL/WebApp_tests/uploads:/app/uploads
+      # Dodaj modele jeśli masz lokalnie (opcjonalnie)
+      # - ./models:/app/models
+    
+    # Konfiguracja GPU (nowy format Docker Compose)
+    deploy:
+      resources:
+        limits:
+          memory: 16G  # Dostosuj do swojego RAM
+        reservations:
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: all  # lub konkretna liczba GPU, np: 1
+              capabilities: [gpu]
+    
+    # Restart policy (opcjonalnie)
+    restart: unless-stopped
+
+    shm_size: '8gb'  # lub '4gb', '16gb' - dostosuj do potrzeb
+    
+    # Jeśli chcesz widzieć logi w czasie rzeczywistym
+    tty: true
+    stdin_open: true

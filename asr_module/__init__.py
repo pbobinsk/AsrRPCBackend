@@ -20,10 +20,13 @@ try:
     from .asr_module_speaker_recognition import main
     _using_real_asr = True
 
-except ImportError:
+except ImportError as e:
     # Krok 3: Jeśli import się nie powiódł, zaimportuj funkcję `main`
     # z modułu-atrapy i udostępnij ją pod tą samą nazwą `main`.
     print("UWAGA: Biblioteka 'whisper' nie jest zainstalowana. Używam modułu-atrapy ASR.")
+    print(f"DEBUG: Typ błędu: {type(e).__name__}")
+    import traceback
+    traceback.print_exc()
     from .asr_module_mock import main
     _using_real_asr = False
 

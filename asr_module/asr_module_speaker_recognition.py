@@ -4,13 +4,23 @@ import wget
 import pandas as pd
 import json
 from pydub import AudioSegment
+
+import torch
+
+# Wymuszenie inicjalizacji CUDA PRZED importem NeMo
+if torch.cuda.is_available():
+    torch.cuda.init()  # Wymuś inicjalizację
+    _ = torch.zeros(1).cuda()  # Upewnij się że działa
+    print(f"CUDA initialized: {torch.cuda.device_count()} GPU(s) available")
+
+
 from nemo.collections.asr.parts.utils.speaker_utils import rttm_to_labels, labels_to_pyannote_object
 from omegaconf import OmegaConf
 from nemo.collections.asr.models import ClusteringDiarizer
 import nemo.collections.asr as nemo_asr
 from nemo.collections.asr.models.msdd_models import NeuralDiarizer
 import whisper
-import torch
+# import torch
 
 # WYBÓR KARTY GPU
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"

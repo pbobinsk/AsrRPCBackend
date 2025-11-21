@@ -1,24 +1,78 @@
-# 1. Wybierz oficjalny obraz Pythona jako bazę
-FROM python:3.13-slim
+# CUDA 11.8 z cuDNN 8 na Ubuntu 22.04 (zgodne z torch+cu118)
+FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 
-# 2. Ustaw zmienną środowiskową, aby logi Pythona pojawiały się od razu
+# Ustaw zmienne środowiskowe
+ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
+ENV CUDA_HOME=/usr/local/cuda
+ENV PATH=${CUDA_HOME}/bin:${PATH}
+ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
 
-# 3. Ustaw katalog roboczy wewnątrz kontenera na /app
-#    To jest nasz główny katalog projektu wewnątrz kontenera.
+# Zaktualizuj system i zainstaluj podstawowe zależności
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Python i narzędzia (Python 3.10)
+    python3.10 \
+    python3-pip \
+    python3.10-dev \
+    python3.10-venv \
+    # Kompilatory i narzędzia budowania
+    build-essential \
+    cmake \
+    git \
+    wget \
+    curl \
+    # Biblioteki audio (dla whisper, torchaudio, pyannote)
+    ffmpeg \
+    libsndfile1 \
+    libsndfile1-dev \
+    sox \
+    libsox-dev \
+    libsox-fmt-all \
+    portaudio19-dev \
+    libasound2-dev \
+    # Dodatkowe dla NeMo
+    libopenmpi-dev \
+    openmpi-bin \
+    openmpi-common \
+    libhdf5-dev \    
+    # Biblioteki video/image (dla torchvision)
+    libavcodec-dev \
+    libavformat-dev \
+    libavutil-dev \
+    libswscale-dev \
+    libjpeg-dev \
+    libpng-dev \
+    # Biblioteki numeryczne i scientyficzne
+    libopenblas-dev \
+    liblapack-dev \
+    gfortran \
+    # Inne przydatne
+    libgomp1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgl1-mesa-glx \
+    # Czyszczenie
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip
+RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel
+
+# Skopiuj requirements.txt
+COPY requirements.txt /tmp/requirements.txt
+
+# Zainstaluj zależności Pythona
+RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
+
+# Utwórz katalog roboczy
 WORKDIR /app
 
-# 4. Skopiuj plik z zależnościami i zainstaluj je
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Skopiuj kod aplikacji
+COPY . /app
 
-# 5. Skopiuj cały projekt (kod, moduły, pliki audio) do kontenera
-#    Kropka na końcu oznacza, że kopiujemy do bieżącego katalogu roboczego (/app)
-COPY . .
+# Port dla JSON-RPC (jeśli używasz)
+EXPOSE 5669
 
-# 6. Wystaw port, na którym będzie działał serwer
-EXPOSE 5666
-
-# 7. ZDEFINIUJ DOMYŚLNĄ KOMENDĘ URUCHAMIAJĄCĄ SERWER JAKO MODUŁ
-#    To jest jedyna zmiana, której potrzebujesz!
-CMD ["python", "-m", "rpc_service.rpc_server"]
+# Komenda startowa (dostosuj do swojej aplikacji)
+CMD ["python3", "-m", "rpc_service.rpc_server"]
