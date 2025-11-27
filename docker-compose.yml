@@ -4,7 +4,7 @@ services:
   asr-service:
     # Buduje obraz na podstawie Dockerfile w bieżącym katalogu
 #    build: .
-    image: ghcr.io/pbobinsk/asr-rpc-service-docker:1.0 
+    image: ghcr.io/pbobinsk/asr-rpc-service-docker:1.1
     # Nazwa kontenera, żeby łatwiej go identyfikować
     container_name: asr_rpc_service
     
