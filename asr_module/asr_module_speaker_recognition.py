@@ -23,7 +23,7 @@ import whisper
 # import torch
 
 # WYBÓR KARTY GPU
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 def main(args):
     # Zmieniamy katalog na podany
@@ -198,7 +198,9 @@ def main(args):
 
     # --- TU JEST NOWY FRAGMENT ---
     # Ustaw domyślne urządzenie
-    device = "cuda:2" if torch.cuda.is_available() else "cpu" 
+#    device = "cuda:2" if torch.cuda.is_available() else "cpu" 
+    gpu_id = os.getenv('CUDA_VISIBLE_DEVICES', '0').split(',')[0]
+    device = f'cuda:{gpu_id}' if torch.cuda.is_available() else 'cpu'
 
     # Załaduj model Whisper
     model = whisper.load_model("large-v3", device=device)

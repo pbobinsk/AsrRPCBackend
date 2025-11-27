@@ -23,8 +23,9 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-      - CUDA_VISIBLE_DEVICES=0,1,2
+      - CUDA_VISIBLE_DEVICES=0 #,1,2
       - CUDA_LAUNCH_BLOCKING=1
+      - GPU_ID=0
 
       
     # Montuje wolumeny, dzięki czemu zmiany w kodzie na Twoim komputerze
@@ -34,9 +35,9 @@ services:
       - ./asr_module:/app/asr_module
       
 
-      - ../../Infostrateg_ISPMdL/WebApp_tests/shared-data:/app/openai_module
-      - ../../Infostrateg_ISPMdL/WebApp_tests/shared-data:/app/audio_files
-      - ../../Infostrateg_ISPMdL/WebApp_tests/uploads:/app/uploads
+      - ../shared-data:/app/openai_module
+      - ../shared-data:/app/audio_files
+      - ../uploads:/app/uploads
       # Dodaj modele jeśli masz lokalnie (opcjonalnie)
       # - ./models:/app/models
     
