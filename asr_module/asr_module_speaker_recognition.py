@@ -3,7 +3,10 @@ import argparse
 import wget
 import pandas as pd
 import json
+import math
 from pydub import AudioSegment
+from pydub.silence import detect_nonsilent
+from pathlib import Path
 from nemo.collections.asr.parts.utils.speaker_utils import rttm_to_labels, labels_to_pyannote_object
 from omegaconf import OmegaConf
 from nemo.collections.asr.models import ClusteringDiarizer
@@ -64,8 +67,24 @@ def main(args):
 
     MODEL_CONFIG = os.path.join(data_dir,'diar_infer_telephonic.yaml')
     if not os.path.exists(MODEL_CONFIG):
+        # Najpierw próbujemy pobrać plik z Internetu, a jeśli się nie uda
+        # (np. brak DNS / pracy offline), korzystamy z lokalnej kopii w repozytorium.
         config_url = "https://raw.githubusercontent.com/NVIDIA/NeMo/main/examples/speaker_tasks/diarization/conf/inference/diar_infer_telephonic.yaml"
-        MODEL_CONFIG = wget.download(config_url,data_dir)
+        try:
+            MODEL_CONFIG = wget.download(config_url,data_dir)
+        except Exception:
+            # Ścieżka do lokalnej kopii w repo: <repo_root>/utils/diar_infer_telephonic.yaml
+            repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+            local_cfg = os.path.join(repo_root, 'utils', 'diar_infer_telephonic.yaml')
+            if not os.path.exists(local_cfg):
+                raise RuntimeError(
+                    "Nie udało się pobrać diar_infer_telephonic.yaml z Internetu "
+                    "i nie znaleziono lokalnej kopii pod utils/."
+                )
+            os.makedirs(data_dir, exist_ok=True)
+            # Kopiujemy lokalny plik do katalogu roboczego jako diar_infer_telephonic.yaml
+            import shutil
+            shutil.copy(local_cfg, MODEL_CONFIG)
 
     config = OmegaConf.load(MODEL_CONFIG)
     print(OmegaConf.to_yaml(config))
@@ -144,39 +163,104 @@ def main(args):
         'stop': agg_df['stop']
     })
 
-    # Lista do przechowywania ścieżek plików
-    file_paths = []
-
-    # Create the output directory if it doesn't exist
+    # Tworzymy katalog na pliki per-turn (po ewentualnym podziale)
     audio_save_dir = f"auxiliary/audio_per_turn/{result['file_ID'].iloc[0]}"
     os.makedirs(audio_save_dir, exist_ok=True)
 
+    # Wczytujemy całe nagranie wizyty
     audio = AudioSegment.from_wav(audio_path)
 
-    # Iteracja przez wiersze DataFrame
-    for index, row in result.iterrows():
-        file_id = row['file_ID'].strip()
-        turn = row['turn'].strip()
+    # Maksymalna długość pojedynczego segmentu w sekundach (bezpieczny limit)
+    max_len_sec = 20.0
 
-        start_time = row['start'] * 1000  # konwersja na milisekundy
-        stop_time = row['stop'] * 1000      # konwersja na milisekundy
-        cut_audio = audio[start_time:stop_time]
-        
-        # Budowanie nazwy pliku WAV na podstawie 'file_ID', 'turn' i indeksu
-        wav_filename = f"{file_id}_{turn}_{index}.wav"
+    # Parametry wykrywania ciszy wewnątrz jednego turnu
+    min_silence_len_ms = 500   # minimalna długość ciszy, aby uznać ją za pauzę (0.5 s)
+    # próg ciszy będzie liczony dynamicznie od głośności danego fragmentu
 
-        output_file_path = os.path.join(audio_save_dir, f"{wav_filename}")
+    # Będziemy budować nową listę wierszy z ewentualnie podzielonymi segmentami
+    new_rows = []
+    global_index = 0
 
-        cut_audio.export(output_file_path, format="wav")
+    for _, row in result.iterrows():
+        file_id = str(row['file_ID']).strip()
+        turn = str(row['turn']).strip()
 
-        # Utwórz pełną ścieżkę do pliku
-        wav_file_path = os.path.join(audio_save_dir, wav_filename)
-        
-        # Dodaj ścieżkę do listy
-        file_paths.append(wav_file_path)
+        seg_start = float(row['start'])
+        seg_stop = float(row['stop'])
+        seg_dur = seg_stop - seg_start
 
-    # Dodaj nową kolumnę do DataFrame z ścieżkami
-    result['wav_file_path'] = file_paths
+        # Globalne czasy segmentu w milisekundach
+        seg_start_ms = int(seg_start * 1000)
+        seg_stop_ms = int(seg_stop * 1000)
+        segment_audio = audio[seg_start_ms:seg_stop_ms]
+
+        # Detekcja fragmentów nie-będących ciszą wewnątrz tego turnu
+        try:
+            silence_thresh = segment_audio.dBFS - 16  # dynamiczny próg względem głośności segmentu
+        except Exception:
+            # awaryjnie, gdy dBFS nie jest zdefiniowane
+            silence_thresh = -40
+
+        non_silent_ranges = detect_nonsilent(
+            segment_audio,
+            min_silence_len=min_silence_len_ms,
+            silence_thresh=silence_thresh
+        )
+
+        boundaries = []
+
+        if non_silent_ranges:
+            # Dla każdego bloku mowy dzielimy dodatkowo, jeśli jest zbyt długi
+            for ns, ne in non_silent_ranges:
+                local_start_sec = ns / 1000.0
+                local_end_sec = ne / 1000.0
+                block_start = seg_start + local_start_sec
+                block_end = seg_start + local_end_sec
+                block_dur = block_end - block_start
+
+                if block_dur <= max_len_sec:
+                    boundaries.append((block_start, block_end))
+                else:
+                    n_chunks = math.ceil(block_dur / max_len_sec)
+                    for i in range(n_chunks):
+                        s = block_start + i * max_len_sec
+                        e = min(block_end, block_start + (i + 1) * max_len_sec)
+                        if e > s:
+                            boundaries.append((s, e))
+        else:
+            # Brak wyraźnych odcinków mowy (np. bardzo cichy fragment) – wracamy do starej logiki
+            if seg_dur <= max_len_sec:
+                boundaries = [(seg_start, seg_stop)]
+            else:
+                n_chunks = math.ceil(seg_dur / max_len_sec)
+                for i in range(n_chunks):
+                    s = seg_start + i * max_len_sec
+                    e = min(seg_stop, seg_start + (i + 1) * max_len_sec)
+                    if e > s:
+                        boundaries.append((s, e))
+
+        for s, e in boundaries:
+            start_ms = int(s * 1000)
+            stop_ms = int(e * 1000)
+            cut_audio = audio[start_ms:stop_ms]
+
+            wav_filename = f"{file_id}_{turn}_{global_index}.wav"
+            global_index += 1
+
+            output_file_path = os.path.join(audio_save_dir, wav_filename)
+            cut_audio.export(output_file_path, format="wav")
+
+            wav_file_path = os.path.join(audio_save_dir, wav_filename)
+
+            new_row = row.copy()
+            new_row['start'] = s
+            new_row['stop'] = e
+            new_row['duration'] = e - s
+            new_row['wav_file_path'] = wav_file_path
+            new_rows.append(new_row)
+
+    # Zastępujemy pierwotny DataFrame nowym z podzielonymi segmentami
+    result = pd.DataFrame(new_rows)
 
     result.to_csv(f"auxiliary/{result['file_ID'].iloc[0]}.csv", index=False, sep=';', encoding='utf-8')
 
@@ -229,7 +313,8 @@ def main(args):
     parsed_json = json.loads(json_data_records)
     print(json.dumps(parsed_json, ensure_ascii=False, indent=2))
 
-    json_file_path = os.path.join(ROOT, f"{args.audio_name}.json")
+    # Zapisujemy JSON z nazwą pliku bez rozszerzenia .wav, np. Track_1_092_wizyta.json
+    json_file_path = os.path.join(ROOT, f"{Path(args.audio_name).stem}.json")
 
     # Zapisywanie JSON z UTF-8 encoding
     with open(json_file_path, "w", encoding="utf-8") as f:

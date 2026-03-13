@@ -179,3 +179,9 @@ cython_debug/
 !WR_S0001_Z05BO.wav.json
 
 audio_files/
+.venv_asr/bin/*
+.venv_asr/*
+asr_module/.venv_asr38/*
+asr_module/.venv_asr310/*
+
+test_audio/auxiliary/*
